@@ -1,0 +1,22 @@
+<h2>List of futures pairs</h2>
+
+<input type="text" placeholder="Search by pair" [(ngModel)]="serchTerm" />
+
+<table>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Last Price</th>
+      <th>24h changes</th>
+      <th>Volume 24h</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (pair of filtered(); track $index) {
+    <td>{{ pair.symbol }}</td>
+    <td>{{ statsMap.get(pair.symbol)?.lastPrice || '-' }}</td>
+    <td>{{ statsMap.get(pair.symbol)?.priceChangePercent || '-' }}%</td>
+    <td>{{ statsMap.get(pair.symbol)?.volume || '-' }}</td>
+    }
+  </tbody>
+</table>
