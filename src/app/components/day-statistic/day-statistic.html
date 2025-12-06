@@ -1,0 +1,10 @@
+@if(stat()) {
+<div class="stat">
+  <span>Last: {{ stat()?.lastPrice || '-' }}</span>
+  <span>High: {{ stat()?.highPrice || '-' }}</span>
+  <span>Low: {{ stat()?.lowPrice || '-' }}</span>
+  <span>Volume: {{ stat()?.volume || '-' }}</span>
+</div>
+} @if(!stat()) {
+<div>Loading stats...</div>
+}

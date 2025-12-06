@@ -1,1 +1,59 @@
-<p>pair-details works!</p>
+<div class="pair-header">
+  <h2>{{ symbol() }}</h2>
+  <button (click)="backToPairs()">Back to pairs</button>
+
+  <app-day-statistic [stat]="dayStat()"></app-day-statistic>
+
+  <div class="controls">
+    @for(i of ['1m','5m','15m','1h', '4h', '1d']; track $index) {
+    <button (click)="setInterval(i)" [class.active]="interval() === i">{{ i }}</button>
+    }
+    <label>
+      SMA period
+      <input type="number" [ngModel]="smaPeriod()" (ngModelChange)="smaPeriod.set($event)" />
+    </label>
+    <label>
+      Ema period
+      <input type="number" [ngModel]="emaPeriod()" (ngModelChange)="emaPeriod.set($event)" />
+    </label>
+  </div>
+
+  <app-candle-stick-chart
+    [series]="chartSeries()"
+    [sma]="smaValues()"
+    [ema]="emaValues()"
+  ></app-candle-stick-chart>
+
+  <div class="orderBook">
+    <div class="asks">
+      @for(a of orderBook().asks; track $index) {
+      <div class="row ask">
+        <span class="price"> {{ a.price }}</span>
+        <span class="qty"> {{ a.qty }}</span>
+        <div class="depth" [style.width.%]="calcDepthPercent(a.qty)"></div>
+      </div>
+      }
+    </div>
+
+    <div class="bids">
+      @for(b of orderBook().bids; track $index) {
+      <div class="row bid">
+        <span class="price"> {{ b.price }}</span>
+        <span class="qty"> {{ b.qty }}</span>
+        <div class="depth" [style.width.%]="calcDepthPercent(b.qty)"></div>
+      </div>
+      }
+    </div>
+  </div>
+
+  <ul class="trades">
+    @for(t of trades(); track $index) {
+    <li>
+      <span>{{ t.tradeTime | date : 'HH:mm:ss' }}</span>
+      <span>{{ t.price }}</span>
+      <span>{{ t.qty }}</span>
+    </li>
+
+    }
+  </ul>
+</div>
