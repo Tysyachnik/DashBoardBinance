@@ -26,27 +26,46 @@
 
   <div class="orderBook">
     <div class="asks">
+      <div class="row header">
+        <span class="price"> Price</span>
+        <span class="qty"> Qty</span>
+        <span class="depth-label"> Depth</span>
+      </div>
       @for(a of orderBook().asks; track $index) {
       <div class="row ask">
         <span class="price"> {{ a.price }}</span>
         <span class="qty"> {{ a.qty }}</span>
-        <div class="depth" [style.width.%]="calcDepthPercent(a.qty)"></div>
+        <div class="depth-wrapper">
+          <div class="depth" [style.width.%]="calcDepthPercent(a.qty)"></div>
+        </div>
       </div>
       }
     </div>
 
     <div class="bids">
+      <div class="row header">
+        <span class="price"> Price</span>
+        <span class="qty"> Qty</span>
+        <span class="depth-label"> Depth</span>
+      </div>
       @for(b of orderBook().bids; track $index) {
       <div class="row bid">
         <span class="price"> {{ b.price }}</span>
         <span class="qty"> {{ b.qty }}</span>
-        <div class="depth" [style.width.%]="calcDepthPercent(b.qty)"></div>
+        <div class="depth-wrapper">
+          <div class="depth" [style.width.%]="calcDepthPercent(b.qty)"></div>
+        </div>
       </div>
       }
     </div>
   </div>
 
   <ul class="trades">
+    <li class="header">
+      <span>Time</span>
+      <span>Price</span>
+      <span>Qty</span>
+    </li>
     @for(t of trades(); track $index) {
     <li>
       <span>{{ t.tradeTime | date : 'HH:mm:ss' }}</span>

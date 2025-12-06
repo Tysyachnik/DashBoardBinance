@@ -1,1 +1,291 @@
-/* You can add global styles to this file, and also import other style files */
+@primary-color: #22c55e;
+@danger-color: #ef4444;
+@secondary-color: #1f2937;
+@bg-color: #111827;
+@text-color: #f9fafb;
+@border-color: #374151;
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: @bg-color;
+  color: @text-color;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
+
+  th {
+    background-color: @secondary-color;
+    color: @text-color;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  tr {
+    border-bottom: 1px solid @border-color;
+    &:hover {
+      background-color: darken(@secondary-color, 5%);
+    }
+  }
+
+  td button {
+    background: none;
+    font-size: 1.1rem;
+  }
+}
+
+.pair-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    button {
+      background-color: @secondary-color;
+      color: @text-color;
+      padding: 0.4rem 0.8rem;
+      border-radius: 0.25rem;
+      &.active {
+        background-color: @primary-color;
+        color: #000;
+      }
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.875rem;
+      input {
+        margin-top: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid @border-color;
+        background-color: #1f2937;
+        color: @text-color;
+      }
+    }
+  }
+}
+
+canvas {
+  width: 100% !important;
+  max-height: 400px;
+  background-color: @secondary-color;
+  border-radius: 0.5rem;
+}
+
+.stat {
+  display: flex;
+  gap: 1rem;
+  span {
+    background-color: #1f2937;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+  }
+}
+
+.orderBook {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+
+  .asks,
+  .bids {
+    flex: 1;
+    background-color: @secondary-color;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+      .depth {
+        height: 4px;
+        background-color: lighten(@primary-color, 10%);
+        margin-left: 0.25rem;
+      }
+    }
+  }
+}
+
+.trades {
+  margin-top: 1rem;
+  li {
+    display: flex;
+    justify-content: space-between;
+    background-color: @secondary-color;
+    padding: 0.25rem 0.5rem;
+    margin-bottom: 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
+}
+
+input[type='text'],
+input[type='number'] {
+  background-color: #1f2937;
+  border: 1px solid @border-color;
+  color: @text-color;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  &:focus {
+    outline: 2px solid @primary-color;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: @secondary-color;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: @border-color;
+  border-radius: 4px;
+}
+
+.flex {
+  display: flex;
+}
+
+.gap-1 {
+  gap: 0.25rem;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-3 {
+  gap: 0.75rem;
+}
+
+.max-w-4xl {
+  max-width: 64rem;
+  margin: 0 auto;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.orderBook {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+
+  .asks,
+  .bids {
+    flex: 1;
+    background-color: #1f2937;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+
+    .row {
+      display: flex;
+      align-items: center;
+      padding: 0.25rem 0;
+
+      &.header {
+        font-weight: 600;
+        border-bottom: 1px solid #374151;
+        margin-bottom: 0.25rem;
+        .price {
+          width: 60px;
+        }
+        .qty {
+          width: 60px;
+        }
+        .depth-label {
+          flex: 1;
+          text-align: left;
+        }
+      }
+
+      .price {
+        width: 60px;
+      }
+      .qty {
+        width: 60px;
+      }
+    }
+
+    .depth-wrapper {
+      flex: 1;
+      position: relative;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+
+      .depth {
+        height: 100%;
+        border-radius: 4px;
+        background-color: rgba(34, 197, 94, 0.5);
+      }
+    }
+  }
+
+  &.bids .row .depth {
+    background-color: rgba(239, 68, 68, 0.5);
+  }
+}
+
+.trades {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+
+    &.header {
+      font-weight: 600;
+      border-bottom: 1px solid #374151;
+      margin-bottom: 0.25rem;
+      span {
+        opacity: 0.7;
+      }
+    }
+
+    &:not(.header) {
+      background-color: #1f2937;
+      margin-bottom: 0.25rem;
+    }
+  }
+}

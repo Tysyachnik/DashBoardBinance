@@ -55,8 +55,7 @@ export class CandleStickChart implements OnChanges, OnDestroy {
       l: s.y[2],
       c: s.y[3],
     }));
-    console.log('ONE SERIES ITEM:', this.series()[0]);
-    console.log(typeof this.series()[0].x);
+
     const smaPoints = this.sma()
       .map((v, i) => {
         if (v == null) return null;
