@@ -1,0 +1,78 @@
+<div class="pair-header">
+  <h2>{{ symbol() }}</h2>
+  <button class="button button-secondary w-fit" (click)="backToPairs()">Back to pairs</button>
+
+  <app-day-statistic [stat]="dayStat()"></app-day-statistic>
+
+  <div class="controls">
+    @for(i of ['1m','5m','15m','1h', '4h', '1d']; track $index) {
+    <button (click)="setInterval(i)" [class.active]="interval() === i">{{ i }}</button>
+    }
+    <label>
+      SMA period
+      <input type="number" [ngModel]="smaPeriod()" (ngModelChange)="smaPeriod.set($event)" />
+    </label>
+    <label>
+      Ema period
+      <input type="number" [ngModel]="emaPeriod()" (ngModelChange)="emaPeriod.set($event)" />
+    </label>
+  </div>
+
+  <app-candle-stick-chart
+    [series]="chartSeries()"
+    [sma]="smaValues()"
+    [ema]="emaValues()"
+  ></app-candle-stick-chart>
+
+  <div class="orderBook">
+    <div class="asks">
+      <div class="row header">
+        <span class="price"> Price</span>
+        <span class="qty"> Qty</span>
+        <span class="depth-label"> Depth</span>
+      </div>
+      @for(a of orderBook().asks; track $index) {
+      <div class="row ask">
+        <span class="price"> {{ a.price }}</span>
+        <span class="qty"> {{ a.qty }}</span>
+        <div class="depth-wrapper">
+          <div class="depth" [style.width.%]="calcDepthPercent(a.qty)"></div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="bids">
+      <div class="row header">
+        <span class="price"> Price</span>
+        <span class="qty"> Qty</span>
+        <span class="depth-label"> Depth</span>
+      </div>
+      @for(b of orderBook().bids; track $index) {
+      <div class="row bid">
+        <span class="price"> {{ b.price }}</span>
+        <span class="qty"> {{ b.qty }}</span>
+        <div class="depth-wrapper">
+          <div class="depth" [style.width.%]="calcDepthPercent(b.qty)"></div>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+
+  <ul class="trades">
+    <li class="header">
+      <span>Time</span>
+      <span>Price</span>
+      <span>Qty</span>
+    </li>
+    @for(t of trades(); track $index) {
+    <li>
+      <span>{{ t.tradeTime | date : 'HH:mm:ss' }}</span>
+      <span>{{ t.price }}</span>
+      <span>{{ t.qty }}</span>
+    </li>
+
+    }
+  </ul>
+</div>

@@ -1,0 +1,60 @@
+<header>
+  <button class="button" (click)="theme.toggleTheme()">
+    {{ theme.theme() === 'dark' ? '🌞' : '🌙 ' }}
+  </button>
+  <h2>List of futures pairs</h2>
+</header>
+
+<input
+  type="text"
+  placeholder="Search by pair"
+  [(ngModel)]="serchTerm"
+  (ngModelChange)="serchTerm.set($event)"
+/>
+
+<button class="button" (click)="showFavorites.set(!showFavorites())">
+  {{ showFavorites() ? 'All pairs' : 'My favorites pairs' }}
+</button>
+
+<table>
+  <thead>
+    <tr>
+      <th (click)="sortBy('symbol')">
+        Symbol @if(sortColumn() === 'symbol') {
+        <span> {{ sortDirection() === 'asc' ? '▲' : '▼' }} </span>
+        }
+      </th>
+      <th (click)="sortBy('lastPrice')">
+        Last Price @if(sortColumn() === 'lastPrice') {
+        <span> {{ sortDirection() === 'asc' ? '▲' : '▼' }} </span>
+        }
+      </th>
+      <th (click)="sortBy('priceChangePercent')">
+        24h changes @if(sortColumn() === 'priceChangePercent') {
+        <span> {{ sortDirection() === 'asc' ? '▲' : '▼' }} </span>
+        }
+      </th>
+      <th (click)="sortBy('volume')">
+        Volume 24h @if(sortColumn() === 'volume') {
+        <span> {{ sortDirection() === 'asc' ? '▲' : '▼' }} </span>
+        }
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (pair of filteredSoartedPairs(); track $index) {
+    <tr (click)="openDetails(pair.symbol)">
+      <td>{{ pair.symbol }}</td>
+      <td>{{ statsMap().get(pair.symbol)?.lastPrice || '-' }}</td>
+      <td>{{ statsMap().get(pair.symbol)?.priceChangePercent || '-' }}%</td>
+      <td>{{ statsMap().get(pair.symbol)?.volume || '-' }}</td>
+      <button
+        class="text-yellow-400 hover:text-yellow-500 text-lg"
+        (click)="favorites.toggleFavorites(pair.symbol); $event.stopPropagation()"
+      >
+        {{ favorites.isFavorite(pair.symbol) ? '★' : '☆' }}
+      </button>
+    </tr>
+    }
+  </tbody>
+</table>
