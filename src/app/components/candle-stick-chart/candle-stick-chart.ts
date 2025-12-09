@@ -5,6 +5,7 @@ import {
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
@@ -23,7 +24,7 @@ Chart.register(...registerables, CandlestickController, CandlestickElement, zoom
   templateUrl: './candle-stick-chart.html',
   styleUrl: './candle-stick-chart.less',
 })
-export class CandleStickChart implements OnChanges, OnDestroy {
+export class CandleStickChart implements OnChanges, OnDestroy, OnInit {
   @ViewChild('canvas', { static: true }) canvas!: ElementRef<HTMLCanvasElement>;
 
   series = input<any[]>([]);
@@ -31,6 +32,12 @@ export class CandleStickChart implements OnChanges, OnDestroy {
   ema = input<(number | null)[]>([]);
 
   private chart!: Chart;
+
+  ngOnInit(): void {
+    window.addEventListener('theme-change', () => {
+      this.updateChartColors();
+    });
+  }
 
   ngOnChanges(): void {
     if (!this.canvas) return;
@@ -43,6 +50,35 @@ export class CandleStickChart implements OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.chart) this.chart.destroy();
+  }
+
+  updateChartColors() {
+    const getVar = (v: string) => getComputedStyle(document.body).getPropertyValue(v).trim();
+
+    const grid = getVar('--chart-grid');
+    const axis = getVar('--chart-axis');
+
+    this.chart.options.scales!['x']!.grid!.color = grid;
+    this.chart.options.scales!['x']!.ticks!.color = axis;
+
+    this.chart.options.scales!['y']!.grid!.color = grid;
+    this.chart.options.scales!['y']!.ticks!.color = axis;
+
+    const candleDataset = this.chart.data.datasets[0] as any;
+    candleDataset.color.up = getVar('--candle-up');
+    candleDataset.color.down = getVar('--candle-down');
+    candleDataset.color.unchanged = getVar('--candle-unchanged');
+    candleDataset.borderColor = getVar('--border');
+
+    this.chart.data.datasets[1].borderColor = getVar('--sma');
+    this.chart.data.datasets[2].borderColor = getVar('--ema');
+
+    this.chart.options.plugins!.tooltip!.backgroundColor = getVar('--tooltip-bg');
+    this.chart.options.plugins!.tooltip!.titleColor = getVar('--tooltip-text');
+    this.chart.options.plugins!.tooltip!.borderColor = getVar('--tooltip-border');
+    this.chart.options.plugins!.legend!.labels!.color = getVar('--legend-text');
+
+    this.chart.update();
   }
 
   private buildChart() {
@@ -79,12 +115,12 @@ export class CandleStickChart implements OnChanges, OnDestroy {
           {
             label: 'Candles',
             data: candleData,
-            borderColor: '#333',
+            borderColor: this.getVar('--border'),
             borderWidth: 0.9,
             color: {
-              up: '#22c55e',
-              down: '#ef4444',
-              unchanged: '#e5e7eb',
+              up: this.getVar('--candle-up'),
+              down: this.getVar('--candle-down'),
+              unchanged: this.getVar('--candle-unchanged'),
             },
             barThickness: 'flex',
             barPercentage: 0.9,
@@ -96,7 +132,7 @@ export class CandleStickChart implements OnChanges, OnDestroy {
             data: smaPoints,
             borderWidth: 2,
             pointRadius: 0,
-            borderColor: 'blue',
+            borderColor: this.getVar('--sma'),
             borderDash: [5, 5],
           },
           {
@@ -105,7 +141,7 @@ export class CandleStickChart implements OnChanges, OnDestroy {
             data: emaPoints,
             borderWidth: 2,
             pointRadius: 0,
-            borderColor: 'orange',
+            borderColor: this.getVar('--ema'),
           } as any,
         ],
       },
@@ -120,13 +156,13 @@ export class CandleStickChart implements OnChanges, OnDestroy {
         plugins: {
           tooltip: {
             enabled: true,
-            backgroundColor: '#222',
-            titleColor: '#fff',
-            borderColor: '#fff',
+            backgroundColor: this.getVar('--tooltip-bg'),
+            titleColor: this.getVar('--tooltip-text'),
+            borderColor: this.getVar('--tooltip-border'),
           },
           legend: {
             labels: {
-              color: '#fff',
+              color: this.getVar('--legend-text'),
             },
           },
           zoom: {
@@ -146,17 +182,21 @@ export class CandleStickChart implements OnChanges, OnDestroy {
           x: {
             type: 'timeseries',
             time: { unit: 'minute' },
-            grid: { color: '#444' },
-            ticks: { color: '#141414ff' },
+            grid: { color: this.getVar('--chart-grid') },
+            ticks: { color: this.getVar('--chart-axis') },
           },
           y: {
             position: 'right',
-            grid: { color: '#444' },
-            ticks: { color: '#181818ff' },
+            grid: { color: this.getVar('--chart-grid') },
+            ticks: { color: this.getVar('--chart-axis') },
           },
         },
       },
     };
     this.chart = new Chart(ctx, config);
+  }
+
+  getVar(name: string) {
+    return getComputedStyle(document.body).getPropertyValue(name).trim();
   }
 }

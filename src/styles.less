@@ -1,26 +1,117 @@
-@primary-color: #22c55e;
-@danger-color: #ef4444;
-@secondary-color: #1f2937;
-@bg-color: #111827;
-@text-color: #f9fafb;
-@border-color: #374151;
+:root {
+  --bg: #111827;
+  --bg-soft: #1f2937;
+  --border: #374151;
+
+  --text: #f9fafb;
+  --text-soft: #9ca3af;
+
+  --ask-bg: rgba(239, 68, 68, 0.25);
+  --bid-bg: rgba(34, 197, 94, 0.25);
+
+  --depth-bg: rgba(255, 255, 255, 0.05);
+
+  --chart-grid: #444;
+  --chart-axis: #fff;
+
+  --candle-up: #22c55e;
+  --candle-down: #ef4444;
+  --candle-unchanged: #e5e7eb;
+
+  --sma: #3b82f6;
+  --ema: #f97316;
+
+  --tooltip-bg: #222;
+  --tooltip-text: #fff;
+  --tooltip-border: #fff;
+
+  --legend-text: #fff;
+
+  --btn-bg: #1f2937;
+  --btn-bg-hover: #374151;
+  --btn-text: #f9fafb;
+
+  --btn-border: #374151;
+
+  --btn-bg-active: #111827;
+}
+
+body.light {
+  --bg: #ffffff;
+  --bg-soft: #f3f4f6;
+  --border: #d1d5db;
+
+  --text: #111827;
+  --text-soft: #4b5563;
+
+  --ask-bg: rgba(239, 68, 68, 0.15);
+  --bid-bg: rgba(34, 197, 94, 0.15);
+
+  --depth-bg: rgba(0, 0, 0, 0.05);
+
+  --chart-grid: #d1d5db;
+  --chart-axis: #374151;
+
+  --candle-up: #16a34a;
+  --candle-down: #dc2626;
+  --candle-unchanged: #6b7280;
+
+  --sma: #1d4ed8;
+  --ema: #ea580c;
+
+  --tooltip-bg: #f3f4f6;
+  --tooltip-text: #111827;
+  --tooltip-border: #111827;
+
+  --legend-text: #111827;
+
+  --btn-bg: #e5e7eb;
+  --btn-bg-hover: #d1d5db;
+  --btn-text: #111827;
+
+  --btn-border: #cbd5e1;
+
+  --btn-bg-active: #f3f4f6;
+}
 
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: @bg-color;
-  color: @text-color;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 button {
+  padding: 0.45rem 0.9rem;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--btn-border);
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  border: none;
-  outline: none;
-  font-family: inherit;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease, border-color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   &:hover {
-    filter: brightness(1.1);
+    background-color: var(--btn-bg-hover);
   }
+  &:active {
+    background-color: var(--btn-bg-active);
+    transform: scale(0.97);
+  }
+}
+
+.button-secondary {
+  background-color: transparent;
+  border: 1px solid var(--btn-border);
+  color: var(--btn-text);
+  width: 8rem;
+}
+
+.button-secondary:hover {
+  background-color: var(--btn-bg-hover);
 }
 
 table {
@@ -35,16 +126,16 @@ table {
   }
 
   th {
-    background-color: @secondary-color;
-    color: @text-color;
+    background-color: var(--bg-soft);
+    color: var(--text);
     user-select: none;
     cursor: pointer;
   }
 
   tr {
-    border-bottom: 1px solid @border-color;
+    border-bottom: 1px solid var(--border);
     &:hover {
-      background-color: darken(@secondary-color, 5%);
+      background-color: color-mix(in srgb, var(--bg-soft), black 10%);
     }
   }
 
@@ -69,13 +160,13 @@ table {
     gap: 0.5rem;
 
     button {
-      background-color: @secondary-color;
-      color: @text-color;
+      background-color: var(--bg-soft);
+      color: var(--text);
       padding: 0.4rem 0.8rem;
       border-radius: 0.25rem;
       &.active {
-        background-color: @primary-color;
-        color: #000;
+        background-color: var(--bg-soft);
+        color: var(--text);
       }
     }
 
@@ -87,9 +178,9 @@ table {
         margin-top: 0.25rem;
         padding: 0.25rem 0.5rem;
         border-radius: 0.25rem;
-        border: 1px solid @border-color;
-        background-color: #1f2937;
-        color: @text-color;
+        border: 1px solid var(--border);
+        background-color: var(--bg-soft);
+        color: var(--text);
       }
     }
   }
@@ -98,7 +189,7 @@ table {
 canvas {
   width: 100% !important;
   max-height: 400px;
-  background-color: @secondary-color;
+  background-color: var(--bg-soft);
   border-radius: 0.5rem;
 }
 
@@ -106,60 +197,22 @@ canvas {
   display: flex;
   gap: 1rem;
   span {
-    background-color: #1f2937;
+    background-color: var(--bg-soft);
     padding: 0.5rem 0.75rem;
     border-radius: 0.25rem;
     font-weight: 500;
   }
 }
 
-.orderBook {
-  display: flex;
-  gap: 2rem;
-  margin-top: 1rem;
-
-  .asks,
-  .bids {
-    flex: 1;
-    background-color: @secondary-color;
-    border-radius: 0.25rem;
-    padding: 0.5rem;
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.25rem 0;
-      .depth {
-        height: 4px;
-        background-color: lighten(@primary-color, 10%);
-        margin-left: 0.25rem;
-      }
-    }
-  }
-}
-
-.trades {
-  margin-top: 1rem;
-  li {
-    display: flex;
-    justify-content: space-between;
-    background-color: @secondary-color;
-    padding: 0.25rem 0.5rem;
-    margin-bottom: 0.25rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-  }
-}
-
 input[type='text'],
 input[type='number'] {
-  background-color: #1f2937;
-  border: 1px solid @border-color;
-  color: @text-color;
+  background-color: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   &:focus {
-    outline: 2px solid @primary-color;
+    outline: 2px solid var(--bg);
   }
 }
 
@@ -169,12 +222,12 @@ input[type='number'] {
 }
 
 ::-webkit-scrollbar-track {
-  background: @secondary-color;
+  background: var(--bg-soft);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: @border-color;
+  background: var(--bg-soft);
   border-radius: 4px;
 }
 
@@ -205,11 +258,13 @@ input[type='number'] {
   display: flex;
   gap: 2rem;
   margin-top: 1rem;
+  color: var(--text);
 
   .asks,
   .bids {
     flex: 1;
-    background-color: #1f2937;
+    background-color: var(--bg-soft);
+    border: 1px solid var(--border);
     border-radius: 0.25rem;
     padding: 0.5rem;
     font-size: 0.875rem;
@@ -221,7 +276,7 @@ input[type='number'] {
 
       &.header {
         font-weight: 600;
-        border-bottom: 1px solid #374151;
+        border-bottom: 1px solid var(--border);
         margin-bottom: 0.25rem;
         .price {
           width: 60px;
@@ -237,16 +292,18 @@ input[type='number'] {
 
       .price {
         width: 60px;
+        color: var(--text-soft);
       }
       .qty {
         width: 60px;
+        color: var(--text-soft);
       }
     }
 
     .depth-wrapper {
       flex: 1;
       position: relative;
-      background-color: rgba(255, 255, 255, 0.05);
+      background-color: var(--depth-bg);
       border-radius: 4px;
       height: 8px;
       overflow: hidden;
@@ -254,29 +311,37 @@ input[type='number'] {
       .depth {
         height: 100%;
         border-radius: 4px;
-        background-color: rgba(34, 197, 94, 0.5);
       }
     }
   }
 
-  &.bids .row .depth {
-    background-color: rgba(239, 68, 68, 0.5);
+  .asks .row .depth {
+    background-color: var(--ask-bg);
+  }
+  .bids .row .depth {
+    background-color: var(--bid-bg);
   }
 }
 
 .trades {
   margin-top: 1rem;
   font-size: 0.875rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  color: var(--text);
 
   li {
     display: flex;
     justify-content: space-between;
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
+    border-bottom: 1px solid var(--border);
 
     &.header {
       font-weight: 600;
-      border-bottom: 1px solid #374151;
+      border-bottom: 1px solid var(--bg-soft);
       margin-bottom: 0.25rem;
       span {
         opacity: 0.7;
@@ -284,8 +349,19 @@ input[type='number'] {
     }
 
     &:not(.header) {
-      background-color: #1f2937;
+      background-color: var(--bg-soft);
       margin-bottom: 0.25rem;
+    }
+    span:nth-child(1) {
+      width: 80px;
+      color: var(--text-soft);
+    }
+    span:nth-child(2) {
+      width: 80px;
+    }
+    span:nth-child(3) {
+      width: 80px;
+      text-align: right;
     }
   }
 }

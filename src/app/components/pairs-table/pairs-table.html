@@ -1,4 +1,9 @@
-<h2>List of futures pairs</h2>
+<header>
+  <button class="button" (click)="theme.toggleTheme()">
+    {{ theme.theme() === 'dark' ? '🌞' : '🌙 ' }}
+  </button>
+  <h2>List of futures pairs</h2>
+</header>
 
 <input
   type="text"
@@ -7,10 +12,7 @@
   (ngModelChange)="serchTerm.set($event)"
 />
 
-<button
-  (click)="showFavorites.set(!showFavorites())"
-  class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600"
->
+<button class="button" (click)="showFavorites.set(!showFavorites())">
   {{ showFavorites() ? 'All pairs' : 'My favorites pairs' }}
 </button>
 

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FavoritesPairs } from '../../services/favorites-pairs';
+import { Theme } from '../../services/theme';
 
 @Component({
   selector: 'app-pairs-table',
@@ -60,7 +61,9 @@ export class PairsTable implements OnInit {
     });
   });
 
-  constructor(private binanceApi: BinanceApi, private router: Router) {}
+  constructor(private binanceApi: BinanceApi, private router: Router, protected theme: Theme) {
+    document.body.className = this.theme.theme();
+  }
 
   ngOnInit(): void {
     this.loadPairs();
