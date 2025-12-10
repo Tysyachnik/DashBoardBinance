@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { BinanceApi } from '../../services/binance-api';
 import { BinanceWebSocket } from '../../services/binance-web-socket';
 import { Candle } from '../../shared/interfaces/candle';
@@ -15,6 +24,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { DayStatistic } from '../day-statistic/day-statistic';
+import { AggTradePayload } from '../../shared/interfaces/agg-trade-payload';
 
 @Component({
   selector: 'app-pair-details',
@@ -22,10 +32,10 @@ import { DayStatistic } from '../day-statistic/day-statistic';
   standalone: true,
   templateUrl: './pair-details.html',
   styleUrl: './pair-details.less',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PairDetails implements OnInit {
-  private route = inject(ActivatedRoute);
-  symbol = toSignal(this.route.paramMap.pipe(map((params) => params.get('symbol'))), {
+export class PairDetails {
+  symbol = toSignal(inject(ActivatedRoute).paramMap.pipe(map((params) => params.get('symbol'))), {
     initialValue: null,
   });
   interval = signal<string>('1m');
@@ -37,6 +47,7 @@ export class PairDetails implements OnInit {
   dayStat = signal<DayStat | null>(null);
   smaPeriod = signal<number>(1);
   emaPeriod = signal<number>(1);
+  timeTracker: string[] = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 
   private destroyRef = inject(DestroyRef);
   private api = inject(BinanceApi);
@@ -45,36 +56,36 @@ export class PairDetails implements OnInit {
 
   chartSeries = computed(() => {
     return this.candles().map((c) => ({
-      x: new Date(c.time),
-      y: [c.open, c.high, c.low, c.close],
+      time: new Date(c.time),
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
     }));
   });
 
   constructor() {
     effect(() => {
-      const s = this.symbol();
-      if (!s) return;
-      this.loadInitial(s);
-      this.connectWsStreams(s);
+      const currSymbol = this.symbol();
+      if (!currSymbol) return;
+      this.loadInitial(currSymbol);
+      this.connectWsStreams(currSymbol);
     });
 
     effect(() => {
-      const c = this.candles().map((x) => x.close);
-      const sp = this.smaPeriod();
-      const ep = this.emaPeriod();
-      this.smaValues.set(sma(c, sp));
-      this.emaValues.set(ema(c, ep));
+      const closingPrice = this.candles().map((candle) => candle.close);
+      this.smaValues.set(sma(closingPrice, this.smaPeriod()));
+      this.emaValues.set(ema(closingPrice, this.emaPeriod()));
     });
   }
-
-  ngOnInit(): void {}
 
   async loadInitial(symbol: string) {
     this.api
       .getKLines(symbol, this.interval())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((raw) => {
-        const parsed = parseKlines(raw as any);
+        const parsed: Candle[] = parseKlines(raw);
         this.candles.set(parsed);
       });
 
@@ -89,21 +100,24 @@ export class PairDetails implements OnInit {
     this.api
       .getOrderBook(symbol, 20)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((data) => {
-        const to = {
-          bids: (data.bids || []).map((b: any) => ({ price: Number(b[0]), qty: Number(b[1]) })),
-          asks: (data.asks || []).map((b: any) => ({ price: Number(b[0]), qty: Number(b[1]) })),
-          lastUpdateId: data.lastUpdateId,
-        } as OrderBook;
-        this.orderBook.set(to);
-      });
+      .subscribe(
+        (data: { bids: [string, string][]; asks: [string, string][]; lastUpdateId?: number }) => {
+          const to = {
+            bids: data.bids.map(([price, qty]) => ({ price: Number(price), qty: Number(qty) })),
+            asks: data.asks.map(([price, qty]) => ({ price: Number(price), qty: Number(qty) })),
+            lastUpdateId: data.lastUpdateId,
+          } as OrderBook;
+          this.orderBook.set(to);
+        }
+      );
   }
 
   connectWsStreams(symbol: string) {
     const depthStream = `${symbol.toLowerCase()}@depth20@100ms`;
     const depth$ = this.ws.connect(depthStream);
     const depthSub = depth$.subscribe({
-      next: (playload: any) => this.handleDepthUpdate(playload),
+      next: (playload: { b?: [string, string][]; a?: [string, string][]; u?: number }) =>
+        this.handleDepthUpdate(playload),
       error: (e) => console.log('depth ws err', e),
     });
     this.destroyRef.onDestroy(() => depthSub.unsubscribe());
@@ -111,13 +125,14 @@ export class PairDetails implements OnInit {
     const tradeStream = `${symbol.toLowerCase()}@aggTrade`;
     const trades$ = this.ws.connect(tradeStream);
     const tradeSub = trades$.subscribe({
-      next: (playload: any) => this.handleAggTrade(playload),
+      next: (playload: AggTradePayload | { data: AggTradePayload }) =>
+        this.handleAggTrade(playload),
       error: (e) => console.log('trades ws err', e),
     });
     this.destroyRef.onDestroy(() => tradeSub.unsubscribe());
   }
 
-  setInterval(value: string) {
+  selectInterval(value: string) {
     this.interval.set(value);
     if (!this.symbol()) return;
 
@@ -125,7 +140,7 @@ export class PairDetails implements OnInit {
       .getKLines(this.symbol()!, this.interval())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((raw) => {
-        const parsed = parseKlines(raw as any);
+        const parsed: Candle[] = parseKlines(raw);
         this.candles.set(parsed);
       });
   }
@@ -151,25 +166,29 @@ export class PairDetails implements OnInit {
     this.router.navigate(['/']);
   }
 
-  private handleDepthUpdate(payload: any) {
-    const bids: OrderBook['bids'] = (payload.b || payload.bids || []).map((b: any) => ({
-      price: Number(b[0]),
-      qty: Number(b[1]),
+  private handleDepthUpdate(payload: {
+    b?: [string, string][];
+    a?: [string, string][];
+    u?: number;
+  }) {
+    const bids: OrderBook['bids'] = (payload.b || []).map(([price, qty]) => ({
+      price: Number(price),
+      qty: Number(qty),
     }));
-    const asks: OrderBook['asks'] = (payload.b || payload.asks || []).map((a: any) => ({
-      price: Number(a[0]),
-      qty: Number(a[1]),
+    const asks: OrderBook['asks'] = (payload.b || []).map(([price, qty]) => ({
+      price: Number(price),
+      qty: Number(qty),
     }));
     this.orderBook.set({
       ...this.orderBook(),
       bids,
       asks,
-      lastUpdateId: payload.u || payload.lastUpdateId,
+      lastUpdateId: payload.u ?? this.orderBook().lastUpdateId,
     });
   }
 
-  private handleAggTrade(payload: any) {
-    const data = payload.data ?? payload;
+  private handleAggTrade(payload: AggTradePayload | { data: AggTradePayload }) {
+    const data: AggTradePayload = 'data' in payload ? payload.data : payload;
     const trade: AggTrade = {
       price: data.p,
       qty: data.q,
