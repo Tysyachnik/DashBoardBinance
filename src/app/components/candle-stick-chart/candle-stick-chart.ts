@@ -1,19 +1,21 @@
 import {
+  ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   input,
-  Input,
-  OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { CandlestickController, CandlestickElement } from 'chartjs-chart-financial';
 import { Chart, ChartConfiguration, FinancialDataPoint, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import 'chartjs-adapter-luxon';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { Candle } from '../../shared/interfaces/candle';
+import { CandleStickDataset } from '../../shared/types/candleStickDataset.type';
+import { createCandlestickChartConfig } from '../../shared/constants/chart-config';
 
 Chart.register(...registerables, CandlestickController, CandlestickElement, zoomPlugin);
 
@@ -23,15 +25,27 @@ Chart.register(...registerables, CandlestickController, CandlestickElement, zoom
   standalone: true,
   templateUrl: './candle-stick-chart.html',
   styleUrl: './candle-stick-chart.less',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CandleStickChart implements OnChanges, OnDestroy, OnInit {
-  @ViewChild('canvas', { static: true }) canvas!: ElementRef<HTMLCanvasElement>;
+export class CandleStickChart implements OnDestroy, OnInit {
+  canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
 
-  series = input<any[]>([]);
+  series = input<Candle[]>([]);
   sma = input<(number | null)[]>([]);
   ema = input<(number | null)[]>([]);
 
   private chart!: Chart;
+
+  constructor() {
+    effect(() => {
+      if (!this.canvas()) return;
+
+      if (this.chart) {
+        this.chart.destroy();
+      }
+      this.buildChart();
+    });
+  }
 
   ngOnInit(): void {
     window.addEventListener('theme-change', () => {
@@ -39,16 +53,8 @@ export class CandleStickChart implements OnChanges, OnDestroy, OnInit {
     });
   }
 
-  ngOnChanges(): void {
-    if (!this.canvas) return;
-
-    if (this.chart) {
-      this.chart.destroy();
-    }
-    this.buildChart();
-  }
-
   ngOnDestroy(): void {
+    window.removeEventListener('theme-change', this.updateChartColors.bind(this));
     if (this.chart) this.chart.destroy();
   }
 
@@ -64,7 +70,7 @@ export class CandleStickChart implements OnChanges, OnDestroy, OnInit {
     this.chart.options.scales!['y']!.grid!.color = grid;
     this.chart.options.scales!['y']!.ticks!.color = axis;
 
-    const candleDataset = this.chart.data.datasets[0] as any;
+    const candleDataset = this.chart.data.datasets[0] as CandleStickDataset;
     candleDataset.color.up = getVar('--candle-up');
     candleDataset.color.down = getVar('--candle-down');
     candleDataset.color.unchanged = getVar('--candle-unchanged');
@@ -82,118 +88,36 @@ export class CandleStickChart implements OnChanges, OnDestroy, OnInit {
   }
 
   private buildChart() {
-    const ctx = this.canvas.nativeElement.getContext('2d')!;
+    const ctx = this.canvas().nativeElement.getContext('2d')!;
 
     const candleData = this.series().map((s) => ({
-      x: typeof s.x === 'object' ? s.x.getTime() : s.x,
-      o: s.y[0],
-      h: s.y[1],
-      l: s.y[2],
-      c: s.y[3],
+      x: typeof s.time === 'object' ? s.time.getTime() : s.time,
+      o: s.open,
+      h: s.high,
+      l: s.low,
+      c: s.close,
     }));
 
     const smaPoints = this.sma()
       .map((v, i) => {
-        if (v == null) return null;
-        const x = this.series()[i].x;
+        if (v === null) return null;
+        const x = this.series()[i].time;
         return { x: typeof x === 'object' ? x.getTime() : x, y: v };
       })
-      .filter(Boolean) as any[];
+      .filter(Boolean) as unknown[];
 
     const emaPoints = this.ema()
       .map((v, i) => {
-        if (v == null) return null;
-        const x = this.series()[i].x;
+        if (v === null) return null;
+        const x = this.series()[i].time;
         return { x: typeof x === 'object' ? x.getTime() : x, y: v };
       })
-      .filter(Boolean) as any[];
+      .filter(Boolean) as unknown[];
 
-    const config: ChartConfiguration<'candlestick', FinancialDataPoint[], unknown> = {
-      type: 'candlestick',
-      data: {
-        datasets: [
-          {
-            label: 'Candles',
-            data: candleData,
-            borderColor: this.getVar('--border'),
-            borderWidth: 0.9,
-            color: {
-              up: this.getVar('--candle-up'),
-              down: this.getVar('--candle-down'),
-              unchanged: this.getVar('--candle-unchanged'),
-            },
-            barThickness: 'flex',
-            barPercentage: 0.9,
-            categoryPercentage: 0.8,
-          },
-          {
-            type: 'line',
-            label: 'SMA',
-            data: smaPoints,
-            borderWidth: 2,
-            pointRadius: 0,
-            borderColor: this.getVar('--sma'),
-            borderDash: [5, 5],
-          },
-          {
-            type: 'line',
-            label: 'EMA',
-            data: emaPoints,
-            borderWidth: 2,
-            pointRadius: 0,
-            borderColor: this.getVar('--ema'),
-          } as any,
-        ],
-      },
-      options: {
-        responsive: true,
-        animation: false,
-        parsing: false,
-        interaction: {
-          mode: 'nearest',
-          intersect: true,
-        },
-        plugins: {
-          tooltip: {
-            enabled: true,
-            backgroundColor: this.getVar('--tooltip-bg'),
-            titleColor: this.getVar('--tooltip-text'),
-            borderColor: this.getVar('--tooltip-border'),
-          },
-          legend: {
-            labels: {
-              color: this.getVar('--legend-text'),
-            },
-          },
-          zoom: {
-            pan: { enabled: true, mode: 'x' },
-            zoom: {
-              wheel: {
-                enabled: true,
-              },
-              pinch: {
-                enabled: true,
-              },
-              mode: 'x',
-            },
-          },
-        },
-        scales: {
-          x: {
-            type: 'timeseries',
-            time: { unit: 'minute' },
-            grid: { color: this.getVar('--chart-grid') },
-            ticks: { color: this.getVar('--chart-axis') },
-          },
-          y: {
-            position: 'right',
-            grid: { color: this.getVar('--chart-grid') },
-            ticks: { color: this.getVar('--chart-axis') },
-          },
-        },
-      },
-    };
-    this.chart = new Chart(ctx, config);
+    this.chart = new Chart(
+      ctx,
+      createCandlestickChartConfig(candleData, smaPoints, emaPoints, this.getVar.bind(this))
+    );
   }
 
   getVar(name: string) {

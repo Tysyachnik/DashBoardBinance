@@ -5,8 +5,8 @@
   <app-day-statistic [stat]="dayStat()"></app-day-statistic>
 
   <div class="controls">
-    @for(i of ['1m','5m','15m','1h', '4h', '1d']; track $index) {
-    <button (click)="setInterval(i)" [class.active]="interval() === i">{{ i }}</button>
+    @for(i of timeTracker; track $index) {
+    <button (click)="selectInterval(i)" [class.active]="interval() === i">{{ i }}</button>
     }
     <label>
       SMA period

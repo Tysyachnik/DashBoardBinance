@@ -1,20 +1,21 @@
 export function ema(values: number[], period: number): (number | null)[] {
-  const res: (number | null)[] = [];
-  const k = 2 / (period + 1);
+  const emaRes: (number | null)[] = [];
+  const smoothingFactor = 2 / (period + 1);
   let prevEma: number | null = null;
+
   for (let i = 0; i < values.length; i++) {
-    const v = values[i];
+    const currVal = values[i];
     if (i === 0) {
-      prevEma = v;
-      res.push(prevEma);
+      prevEma = currVal;
+      emaRes.push(prevEma);
       continue;
     }
     if (prevEma == null) {
-      prevEma = v;
+      prevEma = currVal;
     } else {
-      prevEma = v * k + (1 - k);
+      prevEma = currVal * smoothingFactor + prevEma * (1 - smoothingFactor);
     }
-    res.push(prevEma);
+    emaRes.push(prevEma);
   }
-  return res.map((val, index) => (index < period - 1 ? null : val));
+  return emaRes.map((val, index) => (index < period - 1 ? null : val));
 }

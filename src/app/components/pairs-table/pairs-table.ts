@@ -1,10 +1,20 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { BinanceApi } from '../../services/binance-api';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FavoritesPairs } from '../../services/favorites-pairs';
 import { Theme } from '../../services/theme';
+import { Pair } from '../../shared/interfaces/pair';
+import { PairStats } from '../../shared/interfaces/pair-stats';
 
 @Component({
   selector: 'app-pairs-table',
@@ -12,9 +22,11 @@ import { Theme } from '../../services/theme';
   standalone: true,
   templateUrl: './pairs-table.html',
   styleUrl: './pairs-table.less',
+
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PairsTable implements OnInit {
-  pairs = signal<any[]>([]);
+  pairs = signal<Pair[]>([]);
   statsMap = signal<Map<string, any>>(new Map());
   serchTerm = signal<string>('');
   sortColumn = signal<string | null>(null);
@@ -50,11 +62,12 @@ export class PairsTable implements OnInit {
       const valA = statA?.[column];
       const valB = statB?.[column];
 
-      if (valA == null) return dir;
-      if (valB == null) return -dir;
+      if (valA == null && valB == null) return 0;
+      if (valA === null) return 1 * dir;
+      if (valB === null) return -1 * dir;
 
-      if (typeof valA === 'string') {
-        return valA.localeCompare(valA) * dir;
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return valA.localeCompare(valB) * dir;
       }
 
       return (valA - valB) * dir;
@@ -92,6 +105,11 @@ export class PairsTable implements OnInit {
       this.sortColumn.set(column);
       this.sortDirection.set('asc');
     }
+  }
+
+  resetSort() {
+    this.sortColumn.set(null);
+    this.sortDirection.set('asc');
   }
 
   openDetails(symbol: string) {
